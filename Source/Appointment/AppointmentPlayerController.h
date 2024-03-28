@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Templates/SubclassOf.h"
 #include "GameFramework/PlayerController.h"
+#include "InputActionValue.h"
 #include "AppointmentPlayerController.generated.h"
 
 /** Forward declaration to improve compiling times */
@@ -46,6 +47,10 @@ protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
 	uint32 bMoveToMouseCursor : 1;
 
+	/** Move Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess = "true"))
+	UInputAction* SetKeyboardMoveAction;
+
 	virtual void SetupInputComponent() override;
 	
 	// To add mapping context
@@ -63,6 +68,9 @@ private:
 
 	bool bIsTouch; // Is it a touch device
 	float FollowTime; // For how long it has been pressed
+
+	/** Keyboard Moving */
+	void InputMove(const FInputActionValue& InputActionValue);
 };
 
 

@@ -53,6 +53,10 @@ void AAppointmentPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Triggered, this, &AAppointmentPlayerController::OnTouchTriggered);
 		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Completed, this, &AAppointmentPlayerController::OnTouchReleased);
 		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Canceled, this, &AAppointmentPlayerController::OnTouchReleased);
+
+		// Setup custom event by Caspar
+		EnhancedInputComponent->BindAction(SetKeyboardMoveAction, ETriggerEvent::Started, this, &AAppointmentPlayerController::OnInputStarted);
+		EnhancedInputComponent->BindAction(SetKeyboardMoveAction, ETriggerEvent::Triggered, this, &AAppointmentPlayerController::InputMove);
 	}
 	else
 	{
@@ -122,4 +126,22 @@ void AAppointmentPlayerController::OnTouchReleased()
 {
 	bIsTouch = false;
 	OnSetDestinationReleased();
+}
+
+void AAppointmentPlayerController::InputMove(const FInputActionValue& InputActionValue)
+{
+	const FVector2D value = InputActionValue.Get<FVector2D>();
+	const FRotator MovementRotation(0.0f, GetControlRotation().Yaw, 0.0f);
+
+	if (value.X != 0.0f)
+	{
+		const FVector MovementDirection = MovementRotation.RotateVector(FVector::RightVector);
+		GetPawn()->AddMovementInput(MovementDirection, value.X);
+	}
+
+	if (value.Y != 0.0f)
+	{
+		const FVector MovementDirection = MovementRotation.RotateVector(FVector::ForwardVector);
+		GetPawn()->AddMovementInput(MovementDirection, value.Y);
+	}
 }
