@@ -48,8 +48,11 @@ protected:
 	uint32 bMoveToMouseCursor : 1;
 
 	/** Move Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* SetKeyboardMoveAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UInputAction* InteractAction;
 
 	virtual void SetupInputComponent() override;
 	
@@ -62,6 +65,9 @@ protected:
 	void OnSetDestinationReleased();
 	void OnTouchTriggered();
 	void OnTouchReleased();
+	
+	/** Interaction with field's items */
+	void Interact();
 
 private:
 	FVector CachedDestination;
