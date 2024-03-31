@@ -103,7 +103,7 @@ void AAppointmentPlayerController::OnSetDestinationTriggered()
 		if (IInteractableInterface* Interface = Cast<IInteractableInterface>(Hit.GetActor()))
 		{
 			UE_LOG(LogTemp, Log, TEXT("### Hit Actor(Mouse Left Click : %s"), *Actor->GetName());
-			Interface->Interact();
+			Interface->Interact(this);
 		}
 	}
 	
@@ -176,7 +176,7 @@ void AAppointmentPlayerController::Interact()
 			if (IInteractableInterface* Interface = Cast<IInteractableInterface>(HitResult.GetActor()))
 			{
 				//UE_LOG(LogTemp, Warning, TEXT("##### Hit Actor 2"));
-				Interface->Interact();
+				Interface->Interact(this);
 			}
 
 			//if (HitResult.ImpactPoint.Z >= ZMin && HitResult.ImpactPoint.Z <= ZMax)
