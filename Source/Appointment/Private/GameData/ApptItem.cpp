@@ -3,6 +3,7 @@
 
 #include "GameData/ApptItem.h"
 #include "Components/StaticMeshComponent.h"
+#include "../../AppointmentPlayerController.h"
 
 // Sets default values
 AApptItem::AApptItem()
@@ -28,9 +29,13 @@ void AApptItem::Tick(float DeltaTime)
 
 }
 
-void AApptItem::Interact()
+void AApptItem::Interact(AAppointmentPlayerController* PlayerController)
 {
 	UE_LOG(LogTemp, Warning, TEXT("##### ApptItem::Interact() #####"));
+	if (PlayerController)
+	{
+		PlayerController->AddItemToInventoryWidget(ItemData);
+	}
 	Destroy();
 }
 

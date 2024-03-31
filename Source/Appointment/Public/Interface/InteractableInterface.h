@@ -22,5 +22,5 @@ class APPOINTMENT_API IInteractableInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	virtual void Interact() = 0;
+	virtual void Interact(class AAppointmentPlayerController* PlayerController) = 0;
 };
