@@ -96,6 +96,15 @@ void AAppointmentPlayerController::OnSetDestinationTriggered()
 	if (bHitSuccessful)
 	{
 		CachedDestination = Hit.Location;
+
+		/** Interact Code (Temporary) : Caspar */
+		AActor* Actor = Hit.GetActor();
+
+		if (IInteractableInterface* Interface = Cast<IInteractableInterface>(Hit.GetActor()))
+		{
+			UE_LOG(LogTemp, Log, TEXT("### Hit Actor(Mouse Left Click : %s"), *Actor->GetName());
+			Interface->Interact();
+		}
 	}
 	
 	// Move towards mouse pointer or touch
@@ -104,17 +113,6 @@ void AAppointmentPlayerController::OnSetDestinationTriggered()
 	{
 		FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
 		ControlledPawn->AddMovementInput(WorldDirection, 1.0, false);
-	}
-
-
-	/** Interact Code (Temporary) : Caspar */
-	AActor* Actor = Hit.GetActor();
-	if (Actor)
-		UE_LOG(LogTemp, Log, TEXT("### Hit Actor(Mouse Left Click : %s"), *Actor->GetName());
-
-	if (IInteractableInterface* Interface = Cast<IInteractableInterface>(Hit.GetActor()))
-	{
-		Interface->Interact();
 	}
 }
 
@@ -174,10 +172,10 @@ void AAppointmentPlayerController::Interact()
 		AActor* ActorTemp = HitResult.GetActor();
 		if (IsHit)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("##### Hit Actor 1 : %s"), *ActorTemp->GetName());
+			// UE_LOG(LogTemp, Warning, TEXT("##### Hit Actor 1 : %s"), *ActorTemp->GetName());
 			if (IInteractableInterface* Interface = Cast<IInteractableInterface>(HitResult.GetActor()))
 			{
-				UE_LOG(LogTemp, Warning, TEXT("##### Hit Actor 2"));
+				//UE_LOG(LogTemp, Warning, TEXT("##### Hit Actor 2"));
 				Interface->Interact();
 			}
 
