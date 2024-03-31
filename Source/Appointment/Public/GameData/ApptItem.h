@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "../Interface/InteractableInterface.h"
+#include "ApptData.h"
 #include "ApptItem.generated.h"
 
 UCLASS()
@@ -20,6 +21,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
 	UStaticMeshComponent* ItemMesh;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
+	FItemData ItemData;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -30,3 +34,4 @@ public:
 	virtual void Interact() override;
 
 };
+
