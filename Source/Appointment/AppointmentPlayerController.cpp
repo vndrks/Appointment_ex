@@ -202,6 +202,17 @@ void AAppointmentPlayerController::Interact()
 	}
 }
 
+void AAppointmentPlayerController::UseItem(TSubclassOf<AApptItem> ItemSubclass)
+{
+	if (ItemSubclass)
+	{
+		if (AApptItem* Item = ItemSubclass.GetDefaultObject())
+		{
+			Item->Use(this);
+		}			
+	}
+}
+
 void AAppointmentPlayerController::InputMove(const FInputActionValue& InputActionValue)
 {
 	const FVector2D value = InputActionValue.Get<FVector2D>();

@@ -6,6 +6,7 @@
 #include "Templates/SubclassOf.h"
 #include "GameFramework/PlayerController.h"
 #include "InputActionValue.h"
+#include "Public/GameData/ApptItem.h"
 #include "AppointmentPlayerController.generated.h"
 
 /** Forward declaration to improve compiling times */
@@ -52,10 +53,10 @@ protected:
 	uint32 bMoveToMouseCursor : 1;
 
 	/** Move Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* SetKeyboardMoveAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* InteractAction;
 
 	virtual void SetupInputComponent() override;
@@ -72,6 +73,9 @@ protected:
 	
 	/** Interaction with field's items */
 	void Interact();
+
+	UFUNCTION(BlueprintCallable, Category = "Inventory")
+	void UseItem(TSubclassOf<AApptItem> ItemSubclass);
 
 private:
 	FVector CachedDestination;

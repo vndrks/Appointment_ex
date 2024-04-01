@@ -39,3 +39,8 @@ void AApptItem::Interact(AAppointmentPlayerController* PlayerController)
 	Destroy();
 }
 
+void AApptItem::Use(AAppointmentPlayerController* PlayerController)
+{
+	UE_LOG(LogTemp, Warning, TEXT("##### USE ITEM : %s "), *GetName());
+}
+
