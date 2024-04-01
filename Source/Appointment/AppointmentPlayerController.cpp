@@ -12,6 +12,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
+#include "Net/UnrealNetwork.h"
 
 #include "GameData/ApptItem.h"
 
@@ -35,6 +36,36 @@ void AAppointmentPlayerController::BeginPlay()
 	{
 		Subsystem->AddMappingContext(DefaultMappingContext, 0);
 	}
+}
+
+void AAppointmentPlayerController::AddInventoryItem(FItemData ItemData)
+{
+	AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
+	UE_LOG(LogTemp, Warning, TEXT("##### AddInventoryItem #####"));
+
+	if (PlayerCharacter->HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("##### AddInventoryItem HasAuthority() is true #####"));
+		InventoryItems.Add(ItemData);
+		if (PlayerCharacter->IsLocallyControlled())
+		{
+			OnRep_InventoryItems();
+		}
+	}
+}
+
+void AAppointmentPlayerController::AddHealth(float Value)
+{
+	Health += Value;
+	UpdateStats(Hunger, Health);
+	UE_LOG(LogTemp, Warning, TEXT("##### Add Health : %f, Total : %f"), Value, Health);
+}
+
+void AAppointmentPlayerController::RemoveHunger(float Value)
+{
+	Hunger -= Value;
+	UpdateStats(Hunger, Health);
+	UE_LOG(LogTemp, Warning, TEXT("##### Add Hunger : %f, Total : %f"), Value, Hunger);
 }
 
 void AAppointmentPlayerController::SetupInputComponent()
@@ -61,7 +92,7 @@ void AAppointmentPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(SetKeyboardMoveAction, ETriggerEvent::Started, this, &AAppointmentPlayerController::OnInputStarted);
 		EnhancedInputComponent->BindAction(SetKeyboardMoveAction, ETriggerEvent::Triggered, this, &AAppointmentPlayerController::InputMove);
 		
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AAppointmentPlayerController::Interact);
+		// EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AAppointmentPlayerController::Interact);
 	}
 	else
 	{
@@ -98,13 +129,25 @@ void AAppointmentPlayerController::OnSetDestinationTriggered()
 		CachedDestination = Hit.Location;
 
 		/** Interact Code (Temporary) : Caspar */
-		AActor* Actor = Hit.GetActor();
+		AActor* HitActor = Hit.GetActor();
 
-		if (IInteractableInterface* Interface = Cast<IInteractableInterface>(Hit.GetActor()))
+		AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
+
+		FVector Start = PlayerCharacter->GetActorLocation();
+		FVector End = Start + PlayerCharacter->GetActorForwardVector();
+
+		if (PlayerCharacter->HasAuthority())
 		{
-			UE_LOG(LogTemp, Log, TEXT("### Hit Actor(Mouse Left Click : %s"), *Actor->GetName());
-			Interface->Interact(this);
+			UE_LOG(LogTemp, Warning, TEXT("##### T PlayerCharacter has Authority"));
+			Interact(Start, End, HitActor);
 		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("##### F PlayerCharacter has not Authority"));
+			Server_Interact(Start, End, HitActor);
+		}
+
+		
 	}
 	
 	// Move towards mouse pointer or touch
@@ -142,64 +185,97 @@ void AAppointmentPlayerController::OnTouchReleased()
 	OnSetDestinationReleased();
 }
 
-void AAppointmentPlayerController::Interact()
+bool AAppointmentPlayerController::Server_Interact_Validate(FVector Start, FVector End, AActor* HitActor)
 {
-	AAppointmentCharacter* ApptCharacter = Cast<AAppointmentCharacter>(GetPawn());
-	// UE_LOG(LogTemp, Warning, TEXT("##### Interact()"));
+	return true;
+}
 
-	if (ApptCharacter)
+void AAppointmentPlayerController::Server_Interact_Implementation(FVector Start, FVector End, AActor* HitActor)
+{
+	Interact(Start, End, HitActor);
+}
+
+//void AAppointmentPlayerController::Interact()
+//{
+//	AAppointmentCharacter* ApptCharacter = Cast<AAppointmentCharacter>(GetPawn());
+//	UE_LOG(LogTemp, Warning, TEXT("##### Interact()"));
+//
+//	if (ApptCharacter)
+//	{
+//		FVector StartLocation = ApptCharacter->GetActorLocation();
+//		// FVector ForwardVector = StartLocation + ApptCharacter->GetActorForwardVector() + 200.f;
+//		FVector ForwardVector = StartLocation + FVector(200.f, 200.f, 200.f);
+//		FVector BottomLocation = ApptCharacter->GetActorForwardVector() + FVector(200.f, StartLocation.Y, StartLocation.Z);
+//		
+//		// UE_LOG(LogTemp, Warning, TEXT("##### ForwardVector.Z : %f"), ForwardVector.Z);
+//
+//		float ZMin = ForwardVector.Z - 100.f;
+//		float ZMax = ForwardVector.Z + 100.f;
+//
+//		//UCameraComponent* CameraComponent = ApptCharacter->GetTopDownCameraComponent();
+//		//FVector Start = CameraComponent->GetComponentLocation();
+//		//FVector End = CameraComponent->GetComponentLocation() * 5000.0f;
+//		/**/
+//		FHitResult HitResult;
+//		FCollisionQueryParams CollisionQueryParams;
+//		CollisionQueryParams.AddIgnoredActor(this);
+//		CollisionQueryParams.TraceTag = FName("ZRangeTrace");
+//
+//		bool IsHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, BottomLocation, ECC_Visibility, CollisionQueryParams);
+//		AActor* ActorTemp = HitResult.GetActor();
+//		if (IsHit)
+//		{
+//			// UE_LOG(LogTemp, Warning, TEXT("##### Hit Actor 1 : %s"), *ActorTemp->GetName());
+//			if (IInteractableInterface* Interface = Cast<IInteractableInterface>(HitResult.GetActor()))
+//			{
+//				//UE_LOG(LogTemp, Warning, TEXT("##### Hit Actor 2"));
+//				Interface->Interact(this);
+//			}
+//
+//			//if (HitResult.ImpactPoint.Z >= ZMin && HitResult.ImpactPoint.Z <= ZMax)
+//			//{	
+//			//	if (IInteractableInterface* Interface = Cast<IInteractableInterface>(HitResult.GetActor()))
+//			//	{
+//			//		UE_LOG(LogTemp, Warning, TEXT("##### Hit Actor 2"));
+//			//		Interface->Interact();
+//			//	}
+//			//	/*
+//			//	if (AActor* Actor = HitResult.GetActor())
+//			//	{
+//			//		UE_LOG(LogTemp, Warning, TEXT("Hit Actor : %s"), *Actor->GetName());
+//			//	}
+//			//	*/
+//			//}
+//		}
+//		else
+//		{
+//			if (ActorTemp)
+//				DrawDebugLine(ActorTemp->GetWorld(), StartLocation, BottomLocation, FColor::Green, false, 0.1f, 0, 5.f);
+//		}
+//	}
+//}
+
+void AAppointmentPlayerController::Interact(FVector Start, FVector End, AActor* HitActor)
+{
+	UE_LOG(LogTemp, Warning, TEXT("##### Interact(FVector Start, FVector End) #####"));
+	
+	if (IInteractableInterface* Interface = Cast<IInteractableInterface>(HitActor))
 	{
-		FVector StartLocation = ApptCharacter->GetActorLocation();
-		// FVector ForwardVector = StartLocation + ApptCharacter->GetActorForwardVector() + 200.f;
-		FVector ForwardVector = StartLocation + FVector(200.f, 200.f, 200.f);
-		FVector BottomLocation = ApptCharacter->GetActorForwardVector() + FVector(200.f, StartLocation.Y, StartLocation.Z);
-		
-		// UE_LOG(LogTemp, Warning, TEXT("##### ForwardVector.Z : %f"), ForwardVector.Z);
-
-		float ZMin = ForwardVector.Z - 100.f;
-		float ZMax = ForwardVector.Z + 100.f;
-
-		//UCameraComponent* CameraComponent = ApptCharacter->GetTopDownCameraComponent();
-		//FVector Start = CameraComponent->GetComponentLocation();
-		//FVector End = CameraComponent->GetComponentLocation() * 5000.0f;
-
-		FHitResult HitResult;
-		FCollisionQueryParams CollisionQueryParams;
-		CollisionQueryParams.AddIgnoredActor(this);
-		CollisionQueryParams.TraceTag = FName("ZRangeTrace");
-
-		bool IsHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, BottomLocation, ECC_Visibility, CollisionQueryParams);
-		AActor* ActorTemp = HitResult.GetActor();
-		if (IsHit)
-		{
-			// UE_LOG(LogTemp, Warning, TEXT("##### Hit Actor 1 : %s"), *ActorTemp->GetName());
-			if (IInteractableInterface* Interface = Cast<IInteractableInterface>(HitResult.GetActor()))
-			{
-				//UE_LOG(LogTemp, Warning, TEXT("##### Hit Actor 2"));
-				Interface->Interact(this);
-			}
-
-			//if (HitResult.ImpactPoint.Z >= ZMin && HitResult.ImpactPoint.Z <= ZMax)
-			//{	
-			//	if (IInteractableInterface* Interface = Cast<IInteractableInterface>(HitResult.GetActor()))
-			//	{
-			//		UE_LOG(LogTemp, Warning, TEXT("##### Hit Actor 2"));
-			//		Interface->Interact();
-			//	}
-			//	/*
-			//	if (AActor* Actor = HitResult.GetActor())
-			//	{
-			//		UE_LOG(LogTemp, Warning, TEXT("Hit Actor : %s"), *Actor->GetName());
-			//	}
-			//	*/
-			//}
-		}
-		else
-		{
-			if (ActorTemp)
-				DrawDebugLine(ActorTemp->GetWorld(), StartLocation, BottomLocation, FColor::Green, false, 0.1f, 0, 5.f);
-		}
+		UE_LOG(LogTemp, Warning, TEXT("### Hit Actor(Mouse Left Click : %s"), *HitActor->GetName());
+		Interface->Interact(this);
 	}
+
+	//FHitResult HitResult;
+	//FCollisionQueryParams Params;
+	//Params.AddIgnoredActor(this);
+
+	//if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params))
+	//{
+	//	if (IInteractableInterface* Interface = Cast<IInteractableInterface>(HitResult.GetActor()))
+	//	{
+	//		Interface->Interact(this);
+	//	}
+	//}
 }
 
 void AAppointmentPlayerController::UseItem(TSubclassOf<AApptItem> ItemSubclass)
@@ -211,6 +287,25 @@ void AAppointmentPlayerController::UseItem(TSubclassOf<AApptItem> ItemSubclass)
 			Item->Use(this);
 		}			
 	}
+}
+
+void AAppointmentPlayerController::OnRep_InventoryItems()
+{
+	if (InventoryItems.Num())
+	{
+		AddItemToInventoryWidget(InventoryItems[InventoryItems.Num() - 1]);
+	}
+}
+
+void AAppointmentPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME_CONDITION(AAppointmentPlayerController, InventoryItems, COND_OwnerOnly);
+}
+
+void AAppointmentPlayerController::UpdateStats_Implementation(float NewHunger, float NewHealth)
+{
+	
 }
 
 void AAppointmentPlayerController::InputMove(const FInputActionValue& InputActionValue)
