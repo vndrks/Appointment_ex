@@ -16,11 +16,13 @@ class UInteractableInterface : public UInterface
 /**
  * 
  */
+class AAppointmentPlayerController;
 class APPOINTMENT_API IInteractableInterface
 {
 	GENERATED_BODY()
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	virtual void Interact(class AAppointmentPlayerController* PlayerController) = 0;
+	virtual void Interact(AAppointmentPlayerController* PlayerController) = 0;
+	virtual void Use(AAppointmentPlayerController* PlayerController) {}
 };

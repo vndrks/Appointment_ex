@@ -34,6 +34,9 @@ public:
 	virtual void Interact(class AAppointmentPlayerController* PlayerController) override;
 
 	FItemData GetItemData() { return ItemData; }
+	
+	virtual void Use(AAppointmentPlayerController* PlayerController) override;
+	// FString TestFunction() { return FString("##### OUT TEST STRING #####"); }
 
 };
 
