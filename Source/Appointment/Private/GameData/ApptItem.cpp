@@ -13,6 +13,10 @@ AApptItem::AApptItem()
 	
 	ItemMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	RootComponent = ItemMesh;
+
+	bReplicates = true;
+
+	ItemData.ItemClass = StaticClass();
 }
 
 // Called when the game starts or when spawned
@@ -32,15 +36,16 @@ void AApptItem::Tick(float DeltaTime)
 void AApptItem::Interact(AAppointmentPlayerController* PlayerController)
 {
 	UE_LOG(LogTemp, Warning, TEXT("##### ApptItem::Interact() #####"));
-	if (PlayerController)
+	if (HasAuthority() && PlayerController)
 	{
-		PlayerController->AddItemToInventoryWidget(ItemData);
+		UE_LOG(LogTemp, Warning, TEXT("##### ApptItem::Interact() - HasAuthority #####"));
+		PlayerController->AddInventoryItem(ItemData);
+		Destroy();
 	}
-	Destroy();
 }
 
 void AApptItem::Use(AAppointmentPlayerController* PlayerController)
 {
-	UE_LOG(LogTemp, Warning, TEXT("##### USE ITEM : %s "), *GetName());
+	UE_LOG(LogTemp, Warning, TEXT("##### USE ITEM : %s"), *GetName());
 }
 

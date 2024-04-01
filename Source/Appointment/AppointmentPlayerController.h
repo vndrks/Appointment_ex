@@ -44,9 +44,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* SetDestinationTouchAction;
 
-	UFUNCTION(BlueprintImplementableEvent, Category="Inventory")
-	void AddItemToInventoryWidget(FItemData ItemData);
-
+	void AddInventoryItem(FItemData ItemData);
+	void AddHealth(float Value);
+	void RemoveHunger(float Value);
 
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
@@ -58,6 +58,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	UInputAction* InteractAction;
+
+	UPROPERTY(ReplicatedUsing = OnRep_InventoryItems, BlueprintReadWrite, Category = "Inventory")
+	TArray<FItemData> InventoryItems;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Inventory")
+	float Health;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Inventory")
+	float Hunger;
 
 	virtual void SetupInputComponent() override;
 	
@@ -71,11 +80,26 @@ protected:
 	void OnTouchTriggered();
 	void OnTouchReleased();
 	
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_Interact(FVector Start, FVector End, AActor* HitActor);
+
 	/** Interaction with field's items */
-	void Interact();
+	// void Interact();
+	void Interact(FVector Start, FVector End, AActor* HitActor);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void UseItem(TSubclassOf<AApptItem> ItemSubclass);
+
+	UFUNCTION(BlueprintNativeEvent, Category = "Inventory")
+	void UpdateStats(float NewHunger, float NewHealth);
+
+	UFUNCTION()
+	void OnRep_InventoryItems();
+
+	UFUNCTION(BlueprintImplementableEvent, Category="Inventory")
+	void AddItemToInventoryWidget(FItemData ItemData);
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
 	FVector CachedDestination;
