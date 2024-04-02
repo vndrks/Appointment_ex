@@ -62,10 +62,10 @@ protected:
 	UPROPERTY(ReplicatedUsing = OnRep_InventoryItems, BlueprintReadWrite, Category = "Inventory")
 	TArray<FItemData> InventoryItems;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Inventory")
+	UPROPERTY(ReplicatedUsing = OnRep_Stats, BlueprintReadWrite, Category = "Inventory")
 	float Health;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Inventory")
+	UPROPERTY(ReplicatedUsing = OnRep_Stats, BlueprintReadWrite, Category = "Inventory")
 	float Hunger;
 
 	virtual void SetupInputComponent() override;
@@ -87,6 +87,9 @@ protected:
 	// void Interact();
 	void Interact(FVector Start, FVector End, AActor* HitActor);
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_UseItem(TSubclassOf<AApptItem> ItemSubclass);
+
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void UseItem(TSubclassOf<AApptItem> ItemSubclass);
 
@@ -95,6 +98,9 @@ protected:
 
 	UFUNCTION()
 	void OnRep_InventoryItems();
+
+	UFUNCTION()
+	void OnRep_Stats();
 
 	UFUNCTION(BlueprintImplementableEvent, Category="Inventory")
 	void AddItemToInventoryWidget(FItemData ItemData);

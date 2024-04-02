@@ -56,15 +56,25 @@ void AAppointmentPlayerController::AddInventoryItem(FItemData ItemData)
 
 void AAppointmentPlayerController::AddHealth(float Value)
 {
+	AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
 	Health += Value;
-	UpdateStats(Hunger, Health);
+
+	if (PlayerCharacter->IsLocallyControlled())
+	{
+		UpdateStats(Hunger, Health);
+	}
 	UE_LOG(LogTemp, Warning, TEXT("##### Add Health : %f, Total : %f"), Value, Health);
 }
 
 void AAppointmentPlayerController::RemoveHunger(float Value)
 {
+	AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
 	Hunger -= Value;
-	UpdateStats(Hunger, Health);
+
+	if (PlayerCharacter->IsLocallyControlled())
+	{
+		UpdateStats(Hunger, Health);
+	}
 	UE_LOG(LogTemp, Warning, TEXT("##### Add Hunger : %f, Total : %f"), Value, Hunger);
 }
 
@@ -278,14 +288,42 @@ void AAppointmentPlayerController::Interact(FVector Start, FVector End, AActor* 
 	//}
 }
 
+bool AAppointmentPlayerController::Server_UseItem_Validate(TSubclassOf<AApptItem> ItemSubclass)
+{
+	return true;
+}
+
+void AAppointmentPlayerController::Server_UseItem_Implementation(TSubclassOf<AApptItem> ItemSubclass)
+{
+	for (const auto& Item : InventoryItems)
+	{
+		if (Item.ItemClass == ItemSubclass->GetDefaultObject())
+		{
+			UseItem(ItemSubclass);
+			return;
+		}
+	}
+}
+
 void AAppointmentPlayerController::UseItem(TSubclassOf<AApptItem> ItemSubclass)
 {
 	if (ItemSubclass)
 	{
-		if (AApptItem* Item = ItemSubclass.GetDefaultObject())
+		if (HasAuthority())
 		{
-			Item->Use(this);
-		}			
+			if (AApptItem* Item = ItemSubclass.GetDefaultObject())
+			{
+				Item->Use(this);
+			}			
+		}
+		else
+		{
+			if (AApptItem* Item = ItemSubclass.GetDefaultObject())
+			{
+				Item->Use(this);
+			}
+			Server_UseItem(ItemSubclass);
+		}
 	}
 }
 
@@ -297,10 +335,22 @@ void AAppointmentPlayerController::OnRep_InventoryItems()
 	}
 }
 
+void AAppointmentPlayerController::OnRep_Stats()
+{
+	AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
+	if (PlayerCharacter->IsLocallyControlled())
+	{
+		UpdateStats(Hunger, Health);
+	}
+}
+
 void AAppointmentPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME_CONDITION(AAppointmentPlayerController, InventoryItems, COND_OwnerOnly);
+	DOREPLIFETIME(AAppointmentPlayerController, Hunger);
+	DOREPLIFETIME(AAppointmentPlayerController, Health);
+
 }
 
 void AAppointmentPlayerController::UpdateStats_Implementation(float NewHunger, float NewHealth)

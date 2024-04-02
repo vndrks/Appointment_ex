@@ -12,7 +12,7 @@ AMedicalKit::AMedicalKit()
 
 void AMedicalKit::Use(AAppointmentPlayerController* PlayerController)
 {
-	if (PlayerController)
+	if (HasAuthority() && PlayerController)
 	{
 		PlayerController->AddHealth(HealthValue);
 	}
