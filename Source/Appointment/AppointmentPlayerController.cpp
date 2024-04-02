@@ -295,7 +295,14 @@ bool AAppointmentPlayerController::Server_UseItem_Validate(TSubclassOf<AApptItem
 
 void AAppointmentPlayerController::Server_UseItem_Implementation(TSubclassOf<AApptItem> ItemSubclass)
 {
-	UseItem(ItemSubclass);
+	for (const auto& Item : InventoryItems)
+	{
+		if (Item.ItemClass == ItemSubclass->GetDefaultObject())
+		{
+			UseItem(ItemSubclass);
+			return;
+		}
+	}
 }
 
 void AAppointmentPlayerController::UseItem(TSubclassOf<AApptItem> ItemSubclass)
