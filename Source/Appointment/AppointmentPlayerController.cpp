@@ -45,7 +45,7 @@ void AAppointmentPlayerController::AddInventoryItem(FItemData ItemData)
 	if (PlayerCharacter->HasAuthority())
 	{
 		bool bIsNewItem = true;
-		UE_LOG(LogTemp, Warning, TEXT("##### AddInventoryItem HasAuthority() is true #####"));
+		
 		for (FItemData& Item : InventoryItems)
 		{
 			if (Item.ItemClass == ItemData.ItemClass)
@@ -59,16 +59,12 @@ void AAppointmentPlayerController::AddInventoryItem(FItemData ItemData)
 		if (bIsNewItem)
 		{
 			InventoryItems.Add(ItemData);
-			if (PlayerCharacter->IsLocallyControlled())
-			{
-				OnRep_InventoryItems();
-			}
-		}
-		else
-		{
-			UpdateInventoryWidget(InventoryItems);
-		}
 
+		}
+		if (PlayerCharacter->IsLocallyControlled())
+		{
+			OnRep_InventoryItems();
+		}
 	}
 }
 
@@ -349,7 +345,7 @@ void AAppointmentPlayerController::OnRep_InventoryItems()
 {
 	if (InventoryItems.Num())
 	{
-		AddItemToInventoryWidget(InventoryItems[InventoryItems.Num() - 1]);
+		AddItemAndUpdateInventoryWidget(InventoryItems[InventoryItems.Num() - 1], InventoryItems);
 	}
 }
 
