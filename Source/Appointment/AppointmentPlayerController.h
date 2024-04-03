@@ -103,7 +103,10 @@ protected:
 	void OnRep_Stats();
 
 	UFUNCTION(BlueprintImplementableEvent, Category="Inventory")
-	void AddItemToInventoryWidget(FItemData ItemData);
+	void AddItemAndUpdateInventoryWidget(FItemData ItemData, const TArray<FItemData>& CurrentInventory = TArray<FItemData>());
+
+	UFUNCTION(BlueprintImplementableEvent, Category="Inventory")
+	void UpdateInventoryWidget(const TArray<FItemData>& NewInventoryItems);
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
