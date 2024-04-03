@@ -311,7 +311,7 @@ void AAppointmentPlayerController::Server_UseItem_Implementation(TSubclassOf<AAp
 {
 	for (const auto& Item : InventoryItems)
 	{
-		if (Item.ItemClass == ItemSubclass->GetDefaultObject())
+		if (Item.ItemClass == ItemSubclass)
 		{
 			UseItem(ItemSubclass);
 			return;
@@ -328,7 +328,22 @@ void AAppointmentPlayerController::UseItem(TSubclassOf<AApptItem> ItemSubclass)
 			if (AApptItem* Item = ItemSubclass.GetDefaultObject())
 			{
 				Item->Use(this);
-			}			
+			}
+
+			for (FItemData& Item : InventoryItems)
+			{
+				if (Item.ItemClass == ItemSubclass)
+				{
+					--Item.StackCount;
+					break;
+				}
+			}
+
+			AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
+			if (PlayerCharacter->IsLocallyControlled())
+			{
+				OnRep_InventoryItems();
+			}
 		}
 		else
 		{
