@@ -41,16 +41,34 @@ void AAppointmentPlayerController::BeginPlay()
 void AAppointmentPlayerController::AddInventoryItem(FItemData ItemData)
 {
 	AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
-	UE_LOG(LogTemp, Warning, TEXT("##### AddInventoryItem #####"));
 
 	if (PlayerCharacter->HasAuthority())
 	{
+		bool bIsNewItem = true;
 		UE_LOG(LogTemp, Warning, TEXT("##### AddInventoryItem HasAuthority() is true #####"));
-		InventoryItems.Add(ItemData);
-		if (PlayerCharacter->IsLocallyControlled())
+		for (FItemData& Item : InventoryItems)
 		{
-			OnRep_InventoryItems();
+			if (Item.ItemClass == ItemData.ItemClass)
+			{
+				++Item.StackCount;
+				bIsNewItem = false;
+				break;
+			}
 		}
+
+		if (bIsNewItem)
+		{
+			InventoryItems.Add(ItemData);
+			if (PlayerCharacter->IsLocallyControlled())
+			{
+				OnRep_InventoryItems();
+			}
+		}
+		else
+		{
+			UpdateInventoryWidget(InventoryItems);
+		}
+
 	}
 }
 
