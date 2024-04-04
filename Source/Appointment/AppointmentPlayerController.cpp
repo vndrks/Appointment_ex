@@ -281,11 +281,9 @@ void AAppointmentPlayerController::Server_Interact_Implementation(FVector Start,
 
 void AAppointmentPlayerController::Interact(FVector Start, FVector End, AActor* HitActor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("##### Interact(FVector Start, FVector End) #####"));
-	
 	if (IInteractableInterface* Interface = Cast<IInteractableInterface>(HitActor))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("### Hit Actor(Mouse Left Click : %s"), *HitActor->GetName());
+//		UE_LOG(LogTemp, Warning, TEXT("### Hit Actor(Mouse Left Click : %s"), *HitActor->GetName());
 		Interface->Interact(this);
 	}
 
