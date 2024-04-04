@@ -162,12 +162,10 @@ void AAppointmentPlayerController::OnSetDestinationTriggered()
 
 		if (PlayerCharacter->HasAuthority())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("##### T PlayerCharacter has Authority"));
 			Interact(Start, End, HitActor);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("##### F PlayerCharacter has not Authority"));
 			Server_Interact(Start, End, HitActor);
 		}
 
