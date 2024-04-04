@@ -162,12 +162,10 @@ void AAppointmentPlayerController::OnSetDestinationTriggered()
 
 		if (PlayerCharacter->HasAuthority())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("##### T PlayerCharacter has Authority"));
 			Interact(Start, End, HitActor);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("##### F PlayerCharacter has not Authority"));
 			Server_Interact(Start, End, HitActor);
 		}
 
@@ -281,11 +279,9 @@ void AAppointmentPlayerController::Server_Interact_Implementation(FVector Start,
 
 void AAppointmentPlayerController::Interact(FVector Start, FVector End, AActor* HitActor)
 {
-	UE_LOG(LogTemp, Warning, TEXT("##### Interact(FVector Start, FVector End) #####"));
-	
 	if (IInteractableInterface* Interface = Cast<IInteractableInterface>(HitActor))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("### Hit Actor(Mouse Left Click : %s"), *HitActor->GetName());
+//		UE_LOG(LogTemp, Warning, TEXT("### Hit Actor(Mouse Left Click : %s"), *HitActor->GetName());
 		Interface->Interact(this);
 	}
 
@@ -313,7 +309,10 @@ void AAppointmentPlayerController::Server_UseItem_Implementation(TSubclassOf<AAp
 	{
 		if (Item.ItemClass == ItemSubclass)
 		{
-			UseItem(ItemSubclass);
+			if (Item.StackCount)
+			{
+				UseItem(ItemSubclass);
+			}
 			return;
 		}
 	}
@@ -329,14 +328,21 @@ void AAppointmentPlayerController::UseItem(TSubclassOf<AApptItem> ItemSubclass)
 			{
 				Item->Use(this);
 			}
-
+			uint8 Index = 0;
 			for (FItemData& Item : InventoryItems)
 			{
 				if (Item.ItemClass == ItemSubclass)
 				{
 					--Item.StackCount;
+					if (Item.StackCount <= 0)
+					{
+						UE_LOG(LogTemp, Warning, TEXT("### Before Shrunk : %d"), InventoryItems.Num());
+						InventoryItems.RemoveAt(Index);
+						UE_LOG(LogTemp, Warning, TEXT("### Shrunk : %d"), InventoryItems.Num());
+					}
 					break;
 				}
+				++Index;
 			}
 
 			AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
@@ -361,6 +367,10 @@ void AAppointmentPlayerController::OnRep_InventoryItems()
 	if (InventoryItems.Num())
 	{
 		AddItemAndUpdateInventoryWidget(InventoryItems[InventoryItems.Num() - 1], InventoryItems);
+	}
+	else
+	{
+		AddItemAndUpdateInventoryWidget(FItemData(), InventoryItems);
 	}
 }
 
