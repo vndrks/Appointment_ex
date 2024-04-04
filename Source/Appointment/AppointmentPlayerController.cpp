@@ -313,7 +313,10 @@ void AAppointmentPlayerController::Server_UseItem_Implementation(TSubclassOf<AAp
 	{
 		if (Item.ItemClass == ItemSubclass)
 		{
-			UseItem(ItemSubclass);
+			if (Item.StackCount)
+			{
+				UseItem(ItemSubclass);
+			}
 			return;
 		}
 	}
