@@ -332,14 +332,21 @@ void AAppointmentPlayerController::UseItem(TSubclassOf<AApptItem> ItemSubclass)
 			{
 				Item->Use(this);
 			}
-
+			uint8 Index = 0;
 			for (FItemData& Item : InventoryItems)
 			{
 				if (Item.ItemClass == ItemSubclass)
 				{
 					--Item.StackCount;
+					if (Item.StackCount <= 0)
+					{
+						UE_LOG(LogTemp, Warning, TEXT("### Before Shrunk : %d"), InventoryItems.Num());
+						InventoryItems.RemoveAt(Index);
+						UE_LOG(LogTemp, Warning, TEXT("### Shrunk : %d"), InventoryItems.Num());
+					}
 					break;
 				}
+				++Index;
 			}
 
 			AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
@@ -364,6 +371,10 @@ void AAppointmentPlayerController::OnRep_InventoryItems()
 	if (InventoryItems.Num())
 	{
 		AddItemAndUpdateInventoryWidget(InventoryItems[InventoryItems.Num() - 1], InventoryItems);
+	}
+	else
+	{
+		AddItemAndUpdateInventoryWidget(FItemData(), InventoryItems);
 	}
 }
 
