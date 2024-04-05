@@ -50,7 +50,14 @@ void AAppointmentPlayerController::AddInventoryItem(FItemData ItemData)
 		{
 			if (Item.ItemClass == ItemData.ItemClass)
 			{
-				++Item.StackCount;
+				if (ItemData.StackCount > 1)
+				{
+					Item.StackCount += ItemData.StackCount;
+				}
+				else
+				{
+					++Item.StackCount;
+				}
 				bIsNewItem = false;
 				break;
 			}
