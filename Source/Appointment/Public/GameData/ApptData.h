@@ -16,6 +16,6 @@ struct FItemData
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float ItemCost;
 	
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(EditAnyWhere, BlueprintReadWrite)
 	int32 StackCount = 1;
 };

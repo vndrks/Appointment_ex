@@ -21,7 +21,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
 	UStaticMeshComponent* ItemMesh;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
+	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FItemData ItemData;
 
 	// Called when the game starts or when spawned
