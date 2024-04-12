@@ -10,9 +10,11 @@ AFood::AFood()
 	ItemData.ItemClass = StaticClass();
 }
 
-void AFood::Use(AAppointmentPlayerController* PlayerController)
+void AFood::Use(AAppointmentPlayerController* PlayerController, bool IsInShop)
 {
-	if (PlayerController)
+	Super::Use(PlayerController, IsInShop);
+
+	if (!IsInShop && PlayerController)
 	{
 		PlayerController->RemoveHunger(RemoveFoodValue);
 	}

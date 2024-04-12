@@ -5,38 +5,37 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "../Interface/InteractableInterface.h"
-#include "ApptData.h"
-#include "ApptItem.generated.h"
+#include "GameData/ApptData.h"
+#include "ShopKeeper.generated.h"
 
 UCLASS()
-class APPOINTMENT_API AApptItem : public AActor, public IInteractableInterface
+class APPOINTMENT_API AShopKeeper : public AActor, public IInteractableInterface
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AApptItem();
+	AShopKeeper();
 
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
-	UStaticMeshComponent* ItemMesh;
+	UPROPERTY(EditDefaultsOnly)
+	class USkeletalMeshComponent* ShopKeeperMesh;
 
-	UPROPERTY(EditAnywhere, Category = "Inventory")
-	FItemData ItemData;
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	TArray<FItemData> Items;
+
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps);
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	/** Inherited through IInteractableInterface */
 	virtual void Interact(class AAppointmentPlayerController* PlayerController) override;
-
-	FItemData GetItemData() { return ItemData; }
-	
-	virtual void Use(AAppointmentPlayerController* PlayerController, bool IsInShop = false) override;
-	// FString TestFunction() { return FString("##### OUT TEST STRING #####"); }
+	void TransfferedItem(TSubclassOf<AApptItem> ItemSubclass);
 
 };
-

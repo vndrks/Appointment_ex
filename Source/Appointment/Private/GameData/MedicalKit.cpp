@@ -10,9 +10,11 @@ AMedicalKit::AMedicalKit()
 	ItemData.ItemClass = StaticClass();
 }
 
-void AMedicalKit::Use(AAppointmentPlayerController* PlayerController)
+void AMedicalKit::Use(AAppointmentPlayerController* PlayerController, bool IsInShop)
 {
-	if (HasAuthority() && PlayerController)
+	Super::Use(PlayerController, IsInShop);
+
+	if (!IsInShop && PlayerController)
 	{
 		PlayerController->AddHealth(HealthValue);
 	}
