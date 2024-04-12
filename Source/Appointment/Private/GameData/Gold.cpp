@@ -8,6 +8,6 @@ AGold::AGold()
 	ItemData.ItemClass = StaticClass();
 }
 
-void AGold::Use(AAppointmentPlayerController* PlayerController)
+void AGold::Use(AAppointmentPlayerController* PlayerController, bool IsInShop)
 {
 }

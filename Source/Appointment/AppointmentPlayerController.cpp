@@ -15,6 +15,7 @@
 #include "Net/UnrealNetwork.h"
 
 #include "GameData/ApptItem.h"
+#include "Characters/ShopKeeper.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -173,6 +174,7 @@ void AAppointmentPlayerController::OnSetDestinationTriggered()
 		}
 		else
 		{
+			// Interact(Start, End, HitActor);
 			Server_Interact(Start, End, HitActor);
 		}
 
@@ -286,9 +288,19 @@ void AAppointmentPlayerController::Server_Interact_Implementation(FVector Start,
 
 void AAppointmentPlayerController::Interact(FVector Start, FVector End, AActor* HitActor)
 {
+	if (AShopKeeper* ShopKeeper = Cast<AShopKeeper>(HitActor))
+	{
+		AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
+		UE_LOG(LogTemp, Warning, TEXT("##### OPENING SHOP KEEPER #####"));
+		if (PlayerCharacter->IsLocallyControlled())
+		{
+			ShopKeeper->Interact(this);
+		}
+		return;
+	}
+
 	if (IInteractableInterface* Interface = Cast<IInteractableInterface>(HitActor))
 	{
-//		UE_LOG(LogTemp, Warning, TEXT("### Hit Actor(Mouse Left Click : %s"), *HitActor->GetName());
 		Interface->Interact(this);
 	}
 
@@ -305,27 +317,35 @@ void AAppointmentPlayerController::Interact(FVector Start, FVector End, AActor* 
 	//}
 }
 
-bool AAppointmentPlayerController::Server_UseItem_Validate(TSubclassOf<AApptItem> ItemSubclass)
+bool AAppointmentPlayerController::Server_UseItem_Validate(TSubclassOf<AApptItem> ItemSubclass, AShopKeeper* ShopKeeper, bool IsShopItem)
 {
 	return true;
 }
 
-void AAppointmentPlayerController::Server_UseItem_Implementation(TSubclassOf<AApptItem> ItemSubclass)
+void AAppointmentPlayerController::Server_UseItem_Implementation(TSubclassOf<AApptItem> ItemSubclass, AShopKeeper* ShopKeeper, bool IsShopItem)
 {
-	for (const auto& Item : InventoryItems)
+	if (IsShopItem)
 	{
-		if (Item.ItemClass == ItemSubclass)
+		UseItem(ItemSubclass, ShopKeeper, IsShopItem);
+	}
+	else
+	{
+		for (const auto& Item : InventoryItems)
 		{
-			if (Item.StackCount)
+			if (Item.ItemClass == ItemSubclass)
 			{
-				UseItem(ItemSubclass);
+				if (Item.StackCount)
+				{
+					UseItem(ItemSubclass, ShopKeeper, IsShopItem);
+				}
+				return;
 			}
-			return;
 		}
 	}
+	
 }
 
-void AAppointmentPlayerController::UseItem(TSubclassOf<AApptItem> ItemSubclass)
+void AAppointmentPlayerController::UseItem(TSubclassOf<AApptItem> ItemSubclass, AShopKeeper* ShopKeeper, bool IsShopItem)
 {
 	if (ItemSubclass)
 	{
@@ -333,38 +353,43 @@ void AAppointmentPlayerController::UseItem(TSubclassOf<AApptItem> ItemSubclass)
 		{
 			if (AApptItem* Item = ItemSubclass.GetDefaultObject())
 			{
-				Item->Use(this);
+				Item->Use(this, IsShopItem);
 			}
-			uint8 Index = 0;
-			for (FItemData& Item : InventoryItems)
+			if (!ShopKeeper)
 			{
-				if (Item.ItemClass == ItemSubclass)
+				uint8 Index = 0;
+				for (FItemData& Item : InventoryItems)
 				{
-					--Item.StackCount;
-					if (Item.StackCount <= 0)
+					if (Item.ItemClass == ItemSubclass)
 					{
-						UE_LOG(LogTemp, Warning, TEXT("### Before Shrunk : %d"), InventoryItems.Num());
-						InventoryItems.RemoveAt(Index);
-						UE_LOG(LogTemp, Warning, TEXT("### Shrunk : %d"), InventoryItems.Num());
+						--Item.StackCount;
+						if (Item.StackCount <= 0)
+						{
+							InventoryItems.RemoveAt(Index);
+						}
+						break;
 					}
-					break;
+					++Index;
 				}
-				++Index;
-			}
 
-			AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
-			if (PlayerCharacter->IsLocallyControlled())
+				AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
+				if (PlayerCharacter->IsLocallyControlled())
+				{
+					OnRep_InventoryItems();
+				}
+			}
+			else
 			{
-				OnRep_InventoryItems();
+				ShopKeeper->TransfferedItem(ItemSubclass);
 			}
 		}
 		else
 		{
 			if (AApptItem* Item = ItemSubclass.GetDefaultObject())
 			{
-				Item->Use(this);
+				Item->Use(this, IsShopItem);
 			}
-			Server_UseItem(ItemSubclass);
+			Server_UseItem(ItemSubclass, ShopKeeper, IsShopItem);
 		}
 	}
 }
