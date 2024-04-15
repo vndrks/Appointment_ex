@@ -67,7 +67,6 @@ void AAppointmentPlayerController::AddInventoryItem(FItemData ItemData)
 		if (bIsNewItem)
 		{
 			InventoryItems.Add(ItemData);
-
 		}
 		if (PlayerCharacter->IsLocallyControlled())
 		{
@@ -85,7 +84,6 @@ void AAppointmentPlayerController::AddHealth(float Value)
 	{
 		UpdateStats(Hunger, Health);
 	}
-	UE_LOG(LogTemp, Warning, TEXT("##### Add Health : %f, Total : %f"), Value, Health);
 }
 
 void AAppointmentPlayerController::RemoveHunger(float Value)
@@ -97,7 +95,6 @@ void AAppointmentPlayerController::RemoveHunger(float Value)
 	{
 		UpdateStats(Hunger, Health);
 	}
-	UE_LOG(LogTemp, Warning, TEXT("##### Add Hunger : %f, Total : %f"), Value, Hunger);
 }
 
 void AAppointmentPlayerController::SetupInputComponent()
@@ -174,11 +171,9 @@ void AAppointmentPlayerController::OnSetDestinationTriggered()
 		}
 		else
 		{
-			// Interact(Start, End, HitActor);
+			Interact(Start, End, HitActor);
 			Server_Interact(Start, End, HitActor);
 		}
-
-		
 	}
 	
 	// Move towards mouse pointer or touch
@@ -288,11 +283,11 @@ void AAppointmentPlayerController::Server_Interact_Implementation(FVector Start,
 
 void AAppointmentPlayerController::Interact(FVector Start, FVector End, AActor* HitActor)
 {
-	if (AShopKeeper* ShopKeeper = Cast<AShopKeeper>(HitActor))
+	AShopKeeper* ShopKeeper = Cast<AShopKeeper>(HitActor);
+	if (ShopKeeper)
 	{
-		AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
-		UE_LOG(LogTemp, Warning, TEXT("##### OPENING SHOP KEEPER #####"));
-		if (PlayerCharacter->IsLocallyControlled())
+		UE_LOG(LogTemp, Warning, TEXT("##### OPENING SHOPKEEPER"));
+		if (GetCharacter()->IsLocallyControlled())
 		{
 			ShopKeeper->Interact(this);
 		}
@@ -342,7 +337,7 @@ void AAppointmentPlayerController::Server_UseItem_Implementation(TSubclassOf<AAp
 			}
 		}
 	}
-	
+
 }
 
 void AAppointmentPlayerController::UseItem(TSubclassOf<AApptItem> ItemSubclass, AShopKeeper* ShopKeeper, bool IsShopItem)
@@ -371,7 +366,6 @@ void AAppointmentPlayerController::UseItem(TSubclassOf<AApptItem> ItemSubclass, 
 					}
 					++Index;
 				}
-
 				AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
 				if (PlayerCharacter->IsLocallyControlled())
 				{
@@ -421,7 +415,6 @@ void AAppointmentPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	DOREPLIFETIME_CONDITION(AAppointmentPlayerController, InventoryItems, COND_OwnerOnly);
 	DOREPLIFETIME(AAppointmentPlayerController, Hunger);
 	DOREPLIFETIME(AAppointmentPlayerController, Health);
-
 }
 
 void AAppointmentPlayerController::UpdateStats_Implementation(float NewHunger, float NewHealth)

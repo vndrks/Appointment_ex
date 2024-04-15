@@ -5,7 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "../Interface/InteractableInterface.h"
-#include "GameData/ApptData.h"
+#include "../GameData/ApptData.h"
+
 #include "ShopKeeper.generated.h"
 
 UCLASS()
@@ -24,18 +25,18 @@ protected:
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	TArray<FItemData> Items;
 
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps);
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	/** Inherited through IInteractableInterface */
+public:
 	virtual void Interact(class AAppointmentPlayerController* PlayerController) override;
+
 	void TransfferedItem(TSubclassOf<AApptItem> ItemSubclass);
 
 };

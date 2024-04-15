@@ -48,10 +48,8 @@ void AApptItem::Use(AAppointmentPlayerController* PlayerController, bool IsInSho
 {
 	if (IsInShop && PlayerController)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("##### ADD ITEM FROM SHOP: %s"), *GetName());
 		PlayerController->AddInventoryItem(ItemData);
 	}
-
 	UE_LOG(LogTemp, Warning, TEXT("##### USE ITEM : %s"), *GetName());
 }
 
