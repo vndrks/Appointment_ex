@@ -4,6 +4,8 @@
 #include "Characters/ShopKeeper.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "../AppointmentPlayerController.h"
+#include "../AppointmentCharacter.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
 // Sets default values
@@ -16,6 +18,17 @@ AShopKeeper::AShopKeeper()
 	RootComponent = ShopKeeperMesh;
 
 	bReplicates = true;
+}
+
+void AShopKeeper::OnRep_Items()
+{
+	if (AAppointmentPlayerController* PlayerController = Cast<AAppointmentPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0)))
+	{
+		if (PlayerController->GetCharacter()->IsLocallyControlled())
+		{
+			PlayerController->OpenShop(this, Items);
+		}
+	}
 }
 
 void AShopKeeper::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -56,9 +69,7 @@ void AShopKeeper::TransfferedItem(TSubclassOf<AApptItem> ItemSubclass)
 			--Item.StackCount;
 			if (Item.StackCount <= 0)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("### Before Shrunk : %d"), Items.Num());
 				Items.RemoveAt(Index);
-				UE_LOG(LogTemp, Warning, TEXT("### Shrunk : %d"), Items.Num());
 			}
 			break;
 		}
@@ -69,5 +80,6 @@ void AShopKeeper::TransfferedItem(TSubclassOf<AApptItem> ItemSubclass)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("##### Stack Count : %d"), Item.StackCount);
 	}
+	OnRep_Items();
 }
 

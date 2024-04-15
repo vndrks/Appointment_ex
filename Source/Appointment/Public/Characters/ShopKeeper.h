@@ -22,8 +22,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	class USkeletalMeshComponent* ShopKeeperMesh;
 
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	UPROPERTY(ReplicatedUsing = OnRep_Items, EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	TArray<FItemData> Items;
+
+	UFUNCTION()
+	void OnRep_Items();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 

@@ -48,6 +48,10 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OpenShop(AShopKeeper* OwningShop, const TArray<FItemData>& Items);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateShop(const TArray<FItemData>& Items);
+
+
 	void AddInventoryItem(FItemData ItemData);
 	void AddHealth(float Value);
 	void RemoveHunger(float Value);

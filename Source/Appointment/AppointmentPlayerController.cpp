@@ -160,20 +160,21 @@ void AAppointmentPlayerController::OnSetDestinationTriggered()
 		/** Interact Code (Temporary) : Caspar */
 		AActor* HitActor = Hit.GetActor();
 
-		AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
-
-		FVector Start = PlayerCharacter->GetActorLocation();
-		FVector End = Start + PlayerCharacter->GetActorForwardVector();
-
-		if (PlayerCharacter->HasAuthority())
+		if (AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn()))
 		{
-			Interact(Start, End, HitActor);
-		}
-		else
-		{
-			Interact(Start, End, HitActor);
-			Server_Interact(Start, End, HitActor);
-		}
+			FVector Start = PlayerCharacter->GetActorLocation();
+			FVector End = Start + PlayerCharacter->GetActorForwardVector();
+
+			if (PlayerCharacter->HasAuthority())
+			{
+				Interact(Start, End, HitActor);
+			}
+			else
+			{
+				Interact(Start, End, HitActor);
+				Server_Interact(Start, End, HitActor);
+			}
+		}		
 	}
 	
 	// Move towards mouse pointer or touch
