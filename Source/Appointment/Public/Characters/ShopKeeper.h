@@ -36,4 +36,7 @@ public:
 
 public:
 	virtual void Interact(class AAppointmentPlayerController* PlayerController) override;
+
+	void TransfferedItem(TSubclassOf<AApptItem> ItemSubclass);
+
 };

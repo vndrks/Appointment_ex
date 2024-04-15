@@ -24,5 +24,5 @@ protected:
 	float RemoveFoodValue;
 
 public:
-	virtual void Use(AAppointmentPlayerController* PlayerController) override;
+	virtual void Use(AAppointmentPlayerController* PlayerController, bool IsInShop = false) override;
 };

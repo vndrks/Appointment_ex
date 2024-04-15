@@ -41,7 +41,33 @@ void AShopKeeper::Interact(AAppointmentPlayerController* PlayerController)
 	// throw std::logic_error("The method or operation is not implemented.");
 	if (PlayerController)
 	{
-		PlayerController->OpenShop(Items);
+		PlayerController->OpenShop(this, Items);
+	}
+}
+
+void AShopKeeper::TransfferedItem(TSubclassOf<AApptItem> ItemSubclass)
+{
+	// throw std::logic_error("The method or operation is not implemented.");
+	uint8 Index = 0;
+	for (FItemData& Item : Items)
+	{
+		if (Item.ItemClass == ItemSubclass)
+		{
+			--Item.StackCount;
+			if (Item.StackCount <= 0)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("### Before Shrunk : %d"), Items.Num());
+				Items.RemoveAt(Index);
+				UE_LOG(LogTemp, Warning, TEXT("### Shrunk : %d"), Items.Num());
+			}
+			break;
+		}
+		++Index;
+	}
+
+	for (FItemData& Item : Items)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("##### Stack Count : %d"), Item.StackCount);
 	}
 }
 

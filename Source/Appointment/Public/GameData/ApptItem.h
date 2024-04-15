@@ -35,7 +35,7 @@ public:
 
 	FItemData GetItemData() { return ItemData; }
 	
-	virtual void Use(AAppointmentPlayerController* PlayerController) override;
+	virtual void Use(AAppointmentPlayerController* PlayerController, bool IsInShop = false) override;
 	// FString TestFunction() { return FString("##### OUT TEST STRING #####"); }
 
 };

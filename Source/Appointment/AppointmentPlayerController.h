@@ -45,7 +45,7 @@ public:
 	UInputAction* SetDestinationTouchAction;
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void OpenShop(const TArray<FItemData>& Items);
+	void OpenShop(AShopKeeper* OwningShop, const TArray<FItemData>& Items);
 
 	void AddInventoryItem(FItemData ItemData);
 	void AddHealth(float Value);
@@ -91,10 +91,10 @@ protected:
 	void Interact(FVector Start, FVector End, AActor* HitActor);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_UseItem(TSubclassOf<AApptItem> ItemSubclass);
+	void Server_UseItem(TSubclassOf<AApptItem> ItemSubclass, AShopKeeper* ShopKeeper, bool IsShopItem = false);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
-	void UseItem(TSubclassOf<AApptItem> ItemSubclass);
+	void UseItem(TSubclassOf<AApptItem> ItemSubclass, AShopKeeper* ShopKeeper, bool IsShopItem = false);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Inventory")
 	void UpdateStats(float NewHunger, float NewHealth);

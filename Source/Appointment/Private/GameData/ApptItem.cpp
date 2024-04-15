@@ -44,8 +44,12 @@ void AApptItem::Interact(AAppointmentPlayerController* PlayerController)
 	}
 }
 
-void AApptItem::Use(AAppointmentPlayerController* PlayerController)
+void AApptItem::Use(AAppointmentPlayerController* PlayerController, bool IsInShop)
 {
+	if (IsInShop && PlayerController)
+	{
+		PlayerController->AddInventoryItem(ItemData);
+	}
 	UE_LOG(LogTemp, Warning, TEXT("##### USE ITEM : %s"), *GetName());
 }
 
