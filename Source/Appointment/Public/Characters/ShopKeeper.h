@@ -32,6 +32,10 @@ protected:
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	
+	void TransfferedItem(TSubclassOf<AApptItem> ItemSubclass);
+
+	bool CanBuyItem(int32 CurrentGold, TSubclassOf<AApptItem> ItemSubclass);
 
 public:	
 	// Called every frame
@@ -40,6 +44,7 @@ public:
 public:
 	virtual void Interact(class AAppointmentPlayerController* PlayerController) override;
 
-	void TransfferedItem(TSubclassOf<AApptItem> ItemSubclass);
 
+	
+	bool BuyItem(class AAppointmentPlayerController* PlayerController, TSubclassOf<AApptItem> ItemSubclass);
 };

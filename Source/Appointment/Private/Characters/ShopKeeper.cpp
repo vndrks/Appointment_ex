@@ -43,21 +43,6 @@ void AShopKeeper::BeginPlay()
 	Super::BeginPlay();
 }
 
-// Called every frame
-void AShopKeeper::Tick(float DeltaTime)
-{
-	// Super::Tick(DeltaTime);
-}
-
-void AShopKeeper::Interact(AAppointmentPlayerController* PlayerController)
-{
-	// throw std::logic_error("The method or operation is not implemented.");
-	if (PlayerController)
-	{
-		PlayerController->OpenShop(this, Items);
-	}
-}
-
 void AShopKeeper::TransfferedItem(TSubclassOf<AApptItem> ItemSubclass)
 {
 	// throw std::logic_error("The method or operation is not implemented.");
@@ -81,5 +66,57 @@ void AShopKeeper::TransfferedItem(TSubclassOf<AApptItem> ItemSubclass)
 		UE_LOG(LogTemp, Warning, TEXT("##### Stack Count : %d"), Item.StackCount);
 	}
 	OnRep_Items();
+}
+
+bool AShopKeeper::CanBuyItem(int32 CurrentGold, TSubclassOf<AApptItem> ItemSubclass)
+{
+	for (FItemData& Item : Items)
+	{
+		if (Item.ItemClass == ItemSubclass)
+		{
+			return CurrentGold >= Item.ItemCost;
+		}
+	}
+
+	return false;
+}
+
+// Called every frame
+void AShopKeeper::Tick(float DeltaTime)
+{
+	// Super::Tick(DeltaTime);
+}
+
+void AShopKeeper::Interact(AAppointmentPlayerController* PlayerController)
+{
+	// throw std::logic_error("The method or operation is not implemented.");
+	if (PlayerController)
+	{
+		PlayerController->OpenShop(this, Items);
+	}
+}
+
+bool AShopKeeper::BuyItem(class AAppointmentPlayerController* PlayerController, TSubclassOf<AApptItem> ItemSubclass)
+{
+	if (PlayerController && ItemSubclass)
+	{
+		for (const FItemData& Item : Items)
+		{
+			if (Item.ItemClass == ItemSubclass)
+			{
+				if (CanBuyItem(PlayerController->GetCurrentGold(), ItemSubclass))
+				{
+					if (AApptItem* ItemCDO = ItemSubclass.GetDefaultObject())
+					{
+						ItemCDO->Use(PlayerController, true);
+						PlayerController->RemoveGold(Item.ItemCost);
+						TransfferedItem(ItemSubclass);
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
 }
 

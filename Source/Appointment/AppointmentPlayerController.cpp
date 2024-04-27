@@ -15,6 +15,7 @@
 #include "Net/UnrealNetwork.h"
 
 #include "GameData/ApptItem.h"
+#include "GameData/Gold.h"
 #include "Characters/ShopKeeper.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -94,6 +95,30 @@ void AAppointmentPlayerController::RemoveHunger(float Value)
 	if (PlayerCharacter->IsLocallyControlled())
 	{
 		UpdateStats(Hunger, Health);
+	}
+}
+
+int32 AAppointmentPlayerController::GetCurrentGold()
+{
+	for (FItemData& Item : InventoryItems)
+	{
+		if (Item.ItemClass->StaticClass() == TSubclassOf<AGold>()->StaticClass())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("##### STACK COUNT : %d"), Item.StackCount);
+			return Item.StackCount;
+		}
+	}
+	return 0;
+}
+
+void AAppointmentPlayerController::RemoveGold(int32 AmountToRemove)
+{
+	for (FItemData& Item : InventoryItems)
+	{
+		if (Item.ItemClass->StaticClass() == TSubclassOf<AGold>()->StaticClass())
+		{
+			Item.StackCount -= AmountToRemove;
+		}
 	}
 }
 
@@ -341,41 +366,51 @@ void AAppointmentPlayerController::Server_UseItem_Implementation(TSubclassOf<AAp
 
 }
 
+void AAppointmentPlayerController::UseRemoveItem(TSubclassOf<AApptItem> ItemSubclass)
+{
+	uint8 Index = 0;
+	for (FItemData& Item : InventoryItems)
+	{
+		if (Item.ItemClass == ItemSubclass)
+		{
+			if (AApptItem* ItemCDO = ItemSubclass.GetDefaultObject())
+			{
+				ItemCDO->Use(this, false);
+			}
+			--Item.StackCount;
+			if (Item.StackCount <= 0)
+			{
+				InventoryItems.RemoveAt(Index);
+			}
+			break;
+		}
+		++Index;
+	}
+	AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
+	if (PlayerCharacter->IsLocallyControlled())
+	{
+		OnRep_InventoryItems();
+	}
+}
+
 void AAppointmentPlayerController::UseItem(TSubclassOf<AApptItem> ItemSubclass, AShopKeeper* ShopKeeper, bool IsShopItem)
 {
 	if (ItemSubclass)
 	{
 		if (HasAuthority())
 		{
-			if (AApptItem* Item = ItemSubclass.GetDefaultObject())
-			{
-				Item->Use(this, IsShopItem);
-			}
 			if (!ShopKeeper)
 			{
-				uint8 Index = 0;
-				for (FItemData& Item : InventoryItems)
-				{
-					if (Item.ItemClass == ItemSubclass)
-					{
-						--Item.StackCount;
-						if (Item.StackCount <= 0)
-						{
-							InventoryItems.RemoveAt(Index);
-						}
-						break;
-					}
-					++Index;
-				}
-				AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
-				if (PlayerCharacter->IsLocallyControlled())
-				{
-					OnRep_InventoryItems();
-				}
+				UseRemoveItem(ItemSubclass);
 			}
 			else
 			{
-				ShopKeeper->TransfferedItem(ItemSubclass);
+				ShopKeeper->BuyItem(this, ItemSubclass);
+
+				if (GetCharacter()->IsLocallyControlled())
+				{
+					OnRep_InventoryItems();
+				}
 			}
 		}
 		else
