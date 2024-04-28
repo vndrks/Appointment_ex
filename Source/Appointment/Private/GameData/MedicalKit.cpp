@@ -13,9 +13,12 @@ AMedicalKit::AMedicalKit()
 void AMedicalKit::Use(AAppointmentPlayerController* PlayerController, bool IsInShop)
 {
 	Super::Use(PlayerController, IsInShop);
-
-	if (!IsInShop && PlayerController)
+	if (PlayerController && !IsInShop)
 	{
 		PlayerController->AddHealth(HealthValue);
 	}
+	/*if (HasAuthority() && PlayerController)
+	{
+		PlayerController->AddHealth(HealthValue);
+	}*/
 }

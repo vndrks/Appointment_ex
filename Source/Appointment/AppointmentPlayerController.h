@@ -48,9 +48,18 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OpenShop(AShopKeeper* OwningShop, const TArray<FItemData>& Items);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateShop(const TArray<FItemData>& Items);
+
 	void AddInventoryItem(FItemData ItemData);
 	void AddHealth(float Value);
 	void RemoveHunger(float Value);
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetCurrentGold();
+
+	UFUNCTION(BlueprintCallable)
+	void RemoveGold(int32 AmountToRemove);
 
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
@@ -83,7 +92,7 @@ protected:
 	void OnSetDestinationReleased();
 	void OnTouchTriggered();
 	void OnTouchReleased();
-	
+
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Interact(FVector Start, FVector End, AActor* HitActor);
 
@@ -93,6 +102,8 @@ protected:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_UseItem(TSubclassOf<AApptItem> ItemSubclass, AShopKeeper* ShopKeeper, bool IsShopItem = false);
+
+	void UseRemoveItem(TSubclassOf<AApptItem> ItemSubclass, bool UseItem /* Item : true, Gold : false */, uint16 AmountToRemove = 1);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void UseItem(TSubclassOf<AApptItem> ItemSubclass, AShopKeeper* ShopKeeper, bool IsShopItem = false);

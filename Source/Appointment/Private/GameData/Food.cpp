@@ -13,9 +13,12 @@ AFood::AFood()
 void AFood::Use(AAppointmentPlayerController* PlayerController, bool IsInShop)
 {
 	Super::Use(PlayerController, IsInShop);
-
-	if (!IsInShop && PlayerController)
+	if (PlayerController && !IsInShop)
 	{
-		PlayerController->RemoveHunger(RemoveFoodValue);
+		PlayerController->AddHealth(RemoveFoodValue);
 	}
+	//if (PlayerController)
+	//{
+	//	PlayerController->RemoveHunger(RemoveFoodValue);
+	//}
 }

@@ -15,6 +15,7 @@
 #include "Net/UnrealNetwork.h"
 
 #include "GameData/ApptItem.h"
+#include "GameData/Gold.h"
 #include "Characters/ShopKeeper.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -54,6 +55,7 @@ void AAppointmentPlayerController::AddInventoryItem(FItemData ItemData)
 				if (ItemData.StackCount > 1)
 				{
 					Item.StackCount += ItemData.StackCount;
+					// Item.StackCount += 1;
 				}
 				else
 				{
@@ -67,7 +69,6 @@ void AAppointmentPlayerController::AddInventoryItem(FItemData ItemData)
 		if (bIsNewItem)
 		{
 			InventoryItems.Add(ItemData);
-
 		}
 		if (PlayerCharacter->IsLocallyControlled())
 		{
@@ -85,7 +86,6 @@ void AAppointmentPlayerController::AddHealth(float Value)
 	{
 		UpdateStats(Hunger, Health);
 	}
-	UE_LOG(LogTemp, Warning, TEXT("##### Add Health : %f, Total : %f"), Value, Health);
 }
 
 void AAppointmentPlayerController::RemoveHunger(float Value)
@@ -97,7 +97,24 @@ void AAppointmentPlayerController::RemoveHunger(float Value)
 	{
 		UpdateStats(Hunger, Health);
 	}
-	UE_LOG(LogTemp, Warning, TEXT("##### Add Hunger : %f, Total : %f"), Value, Hunger);
+}
+
+int32 AAppointmentPlayerController::GetCurrentGold()
+{
+	for (FItemData& Item : InventoryItems)
+	{
+		if (Item.ItemClass == AGold::StaticClass())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("##### IS GOLD in GetCurrentGold()"));
+			return Item.StackCount;
+		}
+	}
+	return 0;
+}
+
+void AAppointmentPlayerController::RemoveGold(int32 AmountToRemove)
+{
+	UseRemoveItem(AGold::StaticClass(), false, AmountToRemove);
 }
 
 void AAppointmentPlayerController::SetupInputComponent()
@@ -163,22 +180,21 @@ void AAppointmentPlayerController::OnSetDestinationTriggered()
 		/** Interact Code (Temporary) : Caspar */
 		AActor* HitActor = Hit.GetActor();
 
-		AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
-
-		FVector Start = PlayerCharacter->GetActorLocation();
-		FVector End = Start + PlayerCharacter->GetActorForwardVector();
-
-		if (PlayerCharacter->HasAuthority())
+		if (AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn()))
 		{
-			Interact(Start, End, HitActor);
-		}
-		else
-		{
-			// Interact(Start, End, HitActor);
-			Server_Interact(Start, End, HitActor);
-		}
+			FVector Start = PlayerCharacter->GetActorLocation();
+			FVector End = Start + PlayerCharacter->GetActorForwardVector();
 
-		
+			if (PlayerCharacter->HasAuthority())
+			{
+				Interact(Start, End, HitActor);
+			}
+			else
+			{
+				Interact(Start, End, HitActor);
+				Server_Interact(Start, End, HitActor);
+			}
+		}		
 	}
 	
 	// Move towards mouse pointer or touch
@@ -288,11 +304,11 @@ void AAppointmentPlayerController::Server_Interact_Implementation(FVector Start,
 
 void AAppointmentPlayerController::Interact(FVector Start, FVector End, AActor* HitActor)
 {
-	if (AShopKeeper* ShopKeeper = Cast<AShopKeeper>(HitActor))
+	AShopKeeper* ShopKeeper = Cast<AShopKeeper>(HitActor);
+	if (ShopKeeper)
 	{
-		AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
-		UE_LOG(LogTemp, Warning, TEXT("##### OPENING SHOP KEEPER #####"));
-		if (PlayerCharacter->IsLocallyControlled())
+		UE_LOG(LogTemp, Warning, TEXT("##### OPENING SHOPKEEPER"));
+		if (GetCharacter()->IsLocallyControlled())
 		{
 			ShopKeeper->Interact(this);
 		}
@@ -342,7 +358,52 @@ void AAppointmentPlayerController::Server_UseItem_Implementation(TSubclassOf<AAp
 			}
 		}
 	}
-	
+
+}
+
+void AAppointmentPlayerController::UseRemoveItem(TSubclassOf<AApptItem> ItemSubclass, bool UseItem, uint16 AmountToRemove)
+{
+	uint8 Index = 0;
+	for (FItemData& Item : InventoryItems)
+	{
+		if (Item.ItemClass == ItemSubclass)
+		{
+			if (UseItem)
+			{
+				if (AApptItem* ItemCDO = ItemSubclass.GetDefaultObject())
+				{
+					if (ItemCDO->IsEquipable())
+					{
+						if (HasAuthority())
+						{
+							FActorSpawnParameters SpawnParams;
+							SpawnParams.Owner = this;
+							if (AApptItem* SpawnedItem = GetWorld()->SpawnActor<AApptItem>(ItemSubclass, SpawnParams))
+							{
+								SpawnedItem->AttachToComponent(GetCharacter()->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("Weapon"));
+							}
+						}
+					}
+					else
+					{
+						ItemCDO->Use(this, false);
+					}
+				}
+			}
+			Item.StackCount -= AmountToRemove;
+			if (Item.StackCount <= 0)
+			{
+				InventoryItems.RemoveAt(Index);
+			}
+			break;
+		}
+		++Index;
+	}
+	AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
+	if (PlayerCharacter->IsLocallyControlled())
+	{
+		OnRep_InventoryItems();
+	}
 }
 
 void AAppointmentPlayerController::UseItem(TSubclassOf<AApptItem> ItemSubclass, AShopKeeper* ShopKeeper, bool IsShopItem)
@@ -351,40 +412,32 @@ void AAppointmentPlayerController::UseItem(TSubclassOf<AApptItem> ItemSubclass, 
 	{
 		if (HasAuthority())
 		{
-			if (AApptItem* Item = ItemSubclass.GetDefaultObject())
-			{
-				Item->Use(this, IsShopItem);
-			}
 			if (!ShopKeeper)
 			{
-				uint8 Index = 0;
-				for (FItemData& Item : InventoryItems)
-				{
-					if (Item.ItemClass == ItemSubclass)
-					{
-						--Item.StackCount;
-						if (Item.StackCount <= 0)
-						{
-							InventoryItems.RemoveAt(Index);
-						}
-						break;
-					}
-					++Index;
-				}
-
-				AAppointmentCharacter* PlayerCharacter = Cast<AAppointmentCharacter>(GetPawn());
-				if (PlayerCharacter->IsLocallyControlled())
+				UseRemoveItem(ItemSubclass, true);
+			}
+			else
+			{
+				ShopKeeper->BuyItem(this, ItemSubclass);
+				if (GetCharacter()->IsLocallyControlled())
 				{
 					OnRep_InventoryItems();
 				}
 			}
-			else
-			{
-				ShopKeeper->TransfferedItem(ItemSubclass);
-			}
 		}
 		else
 		{
+			if (ShopKeeper)
+			{
+				if (ShopKeeper->BuyItem(this, ItemSubclass))
+				{
+					OnRep_InventoryItems();
+				}
+				else
+				{
+					return;
+				}
+			}
 			if (AApptItem* Item = ItemSubclass.GetDefaultObject())
 			{
 				Item->Use(this, IsShopItem);
@@ -421,7 +474,6 @@ void AAppointmentPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimePr
 	DOREPLIFETIME_CONDITION(AAppointmentPlayerController, InventoryItems, COND_OwnerOnly);
 	DOREPLIFETIME(AAppointmentPlayerController, Hunger);
 	DOREPLIFETIME(AAppointmentPlayerController, Health);
-
 }
 
 void AAppointmentPlayerController::UpdateStats_Implementation(float NewHunger, float NewHealth)

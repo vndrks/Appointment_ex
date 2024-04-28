@@ -24,6 +24,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Inventory")
 	FItemData ItemData;
 
+	UPROPERTY(EditAnywhere, Category = "Inventory")
+	bool bIsEquipable;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -38,5 +41,6 @@ public:
 	virtual void Use(AAppointmentPlayerController* PlayerController, bool IsInShop = false) override;
 	// FString TestFunction() { return FString("##### OUT TEST STRING #####"); }
 
+	bool IsEquipable() const { return bIsEquipable; }
 };
 

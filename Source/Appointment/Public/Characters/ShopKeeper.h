@@ -5,7 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "../Interface/InteractableInterface.h"
-#include "GameData/ApptData.h"
+#include "../GameData/ApptData.h"
+
 #include "ShopKeeper.generated.h"
 
 UCLASS()
@@ -21,21 +22,27 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	class USkeletalMeshComponent* ShopKeeperMesh;
 
-	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Inventory")
+	UPROPERTY(ReplicatedUsing = OnRep_Items, EditAnywhere, BlueprintReadWrite, Category = "Inventory")
 	TArray<FItemData> Items;
 
-	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps);
+	UFUNCTION()
+	void OnRep_Items();
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	
+	void TransfferedItem(TSubclassOf<AApptItem> ItemSubclass);
 
+	bool CanBuyItem(int32 CurrentGold, TSubclassOf<AApptItem> ItemSubclass);
 
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	/** Inherited through IInteractableInterface */
+public:
 	virtual void Interact(class AAppointmentPlayerController* PlayerController) override;
-	void TransfferedItem(TSubclassOf<AApptItem> ItemSubclass);
 
+	bool BuyItem(class AAppointmentPlayerController* PlayerController, TSubclassOf<AApptItem> ItemSubclass);
 };
