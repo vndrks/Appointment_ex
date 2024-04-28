@@ -17,6 +17,7 @@ AApptItem::AApptItem()
 	bReplicates = true;
 
 	ItemData.ItemClass = StaticClass();
+	bIsEquipable = false;
 }
 
 // Called when the game starts or when spawned

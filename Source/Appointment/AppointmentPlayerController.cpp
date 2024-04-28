@@ -55,6 +55,7 @@ void AAppointmentPlayerController::AddInventoryItem(FItemData ItemData)
 				if (ItemData.StackCount > 1)
 				{
 					Item.StackCount += ItemData.StackCount;
+					// Item.StackCount += 1;
 				}
 				else
 				{
@@ -102,9 +103,9 @@ int32 AAppointmentPlayerController::GetCurrentGold()
 {
 	for (FItemData& Item : InventoryItems)
 	{
-		if (Item.ItemClass->StaticClass() == TSubclassOf<AGold>()->StaticClass())
+		if (Item.ItemClass == AGold::StaticClass())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("##### STACK COUNT : %d"), Item.StackCount);
+			UE_LOG(LogTemp, Warning, TEXT("##### IS GOLD in GetCurrentGold()"));
 			return Item.StackCount;
 		}
 	}
@@ -113,13 +114,7 @@ int32 AAppointmentPlayerController::GetCurrentGold()
 
 void AAppointmentPlayerController::RemoveGold(int32 AmountToRemove)
 {
-	for (FItemData& Item : InventoryItems)
-	{
-		if (Item.ItemClass->StaticClass() == TSubclassOf<AGold>()->StaticClass())
-		{
-			Item.StackCount -= AmountToRemove;
-		}
-	}
+	UseRemoveItem(AGold::StaticClass(), false, AmountToRemove);
 }
 
 void AAppointmentPlayerController::SetupInputComponent()
@@ -366,18 +361,36 @@ void AAppointmentPlayerController::Server_UseItem_Implementation(TSubclassOf<AAp
 
 }
 
-void AAppointmentPlayerController::UseRemoveItem(TSubclassOf<AApptItem> ItemSubclass)
+void AAppointmentPlayerController::UseRemoveItem(TSubclassOf<AApptItem> ItemSubclass, bool UseItem, uint16 AmountToRemove)
 {
 	uint8 Index = 0;
 	for (FItemData& Item : InventoryItems)
 	{
 		if (Item.ItemClass == ItemSubclass)
 		{
-			if (AApptItem* ItemCDO = ItemSubclass.GetDefaultObject())
+			if (UseItem)
 			{
-				ItemCDO->Use(this, false);
+				if (AApptItem* ItemCDO = ItemSubclass.GetDefaultObject())
+				{
+					if (ItemCDO->IsEquipable())
+					{
+						if (HasAuthority())
+						{
+							FActorSpawnParameters SpawnParams;
+							SpawnParams.Owner = this;
+							if (AApptItem* SpawnedItem = GetWorld()->SpawnActor<AApptItem>(ItemSubclass, SpawnParams))
+							{
+								SpawnedItem->AttachToComponent(GetCharacter()->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("Weapon"));
+							}
+						}
+					}
+					else
+					{
+						ItemCDO->Use(this, false);
+					}
+				}
 			}
-			--Item.StackCount;
+			Item.StackCount -= AmountToRemove;
 			if (Item.StackCount <= 0)
 			{
 				InventoryItems.RemoveAt(Index);
@@ -401,12 +414,11 @@ void AAppointmentPlayerController::UseItem(TSubclassOf<AApptItem> ItemSubclass, 
 		{
 			if (!ShopKeeper)
 			{
-				UseRemoveItem(ItemSubclass);
+				UseRemoveItem(ItemSubclass, true);
 			}
 			else
 			{
 				ShopKeeper->BuyItem(this, ItemSubclass);
-
 				if (GetCharacter()->IsLocallyControlled())
 				{
 					OnRep_InventoryItems();
@@ -415,6 +427,17 @@ void AAppointmentPlayerController::UseItem(TSubclassOf<AApptItem> ItemSubclass, 
 		}
 		else
 		{
+			if (ShopKeeper)
+			{
+				if (ShopKeeper->BuyItem(this, ItemSubclass))
+				{
+					OnRep_InventoryItems();
+				}
+				else
+				{
+					return;
+				}
+			}
 			if (AApptItem* Item = ItemSubclass.GetDefaultObject())
 			{
 				Item->Use(this, IsShopItem);

@@ -44,7 +44,5 @@ public:
 public:
 	virtual void Interact(class AAppointmentPlayerController* PlayerController) override;
 
-
-	
 	bool BuyItem(class AAppointmentPlayerController* PlayerController, TSubclassOf<AApptItem> ItemSubclass);
 };

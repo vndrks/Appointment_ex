@@ -103,7 +103,7 @@ protected:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_UseItem(TSubclassOf<AApptItem> ItemSubclass, AShopKeeper* ShopKeeper, bool IsShopItem = false);
 
-	void UseRemoveItem(TSubclassOf<AApptItem> ItemSubclass);
+	void UseRemoveItem(TSubclassOf<AApptItem> ItemSubclass, bool UseItem /* Item : true, Gold : false */, uint16 AmountToRemove = 1);
 
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void UseItem(TSubclassOf<AApptItem> ItemSubclass, AShopKeeper* ShopKeeper, bool IsShopItem = false);
