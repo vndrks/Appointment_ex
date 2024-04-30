@@ -13,6 +13,9 @@ class AAppointmentGameMode : public AGameModeBase
 
 public:
 	AAppointmentGameMode();
+
+	virtual void StartPlay() override;
+
 };
 
 

@@ -24,3 +24,13 @@ AAppointmentGameMode::AAppointmentGameMode()
 		PlayerControllerClass = PlayerControllerBPClass.Class;
 	}
 }
+
+void AAppointmentGameMode::StartPlay()
+{
+	Super::StartPlay();
+
+	check(GEngine != nullptr);
+
+	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("This is Appointment Game Mode."));
+	// throw std::logic_error("The method or operation is not implemented.");
+}

@@ -6,7 +6,8 @@
 #include "Templates/SubclassOf.h"
 #include "GameFramework/PlayerController.h"
 #include "InputActionValue.h"
-#include "Public/GameData/ApptItem.h"
+#include "GameData/ApptItem.h"
+#include "GameData/Projectile/ProjectileBase.h"
 #include "AppointmentPlayerController.generated.h"
 
 /** Forward declaration to improve compiling times */
@@ -45,6 +46,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
 	UInputAction* SetDestinationTouchAction;
 
+	/** Basic Attack */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction* SetBasicAttack;
+
+	/** Gun muzzle offset from the camera location. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay")
+	FVector MuzzleOffset;
+
+	// Projectile class to spawn.
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	TSubclassOf<class AProjectileBase> ProjectileClass;
+
 	UFUNCTION(BlueprintImplementableEvent)
 	void OpenShop(AShopKeeper* OwningShop, const TArray<FItemData>& Items);
 
@@ -60,6 +73,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void RemoveGold(int32 AmountToRemove);
+
+	/** Function that handles firing projectiles. */
+	UFUNCTION()
+	void Fire();
 
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
