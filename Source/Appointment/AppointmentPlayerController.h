@@ -140,6 +140,9 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Inventory")
 	void UpdateInventoryWidget(const TArray<FItemData>& NewInventoryItems);
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "Projectile")
+	void AttackTest();
+
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
