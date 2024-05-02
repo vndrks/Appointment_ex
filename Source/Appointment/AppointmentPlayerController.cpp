@@ -144,7 +144,7 @@ void AAppointmentPlayerController::Fire()
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = this;
 			SpawnParams.Instigator = GetInstigator();
-
+			
 			// Spawn the projectile at the muzzle
 			AProjectileBase* Projectile = World->SpawnActor<AProjectileBase>(ProjectileClass, MuzzleLocation, MuzzleRotation);
 			if (Projectile)
@@ -153,6 +153,8 @@ void AAppointmentPlayerController::Fire()
 				FVector LaunchDirection = MuzzleRotation.Vector();
 				Projectile->FireInDirection(LaunchDirection);
 			}
+			// Attack
+			AttackTest();
 		}
 	}
 }
@@ -183,7 +185,7 @@ void AAppointmentPlayerController::SetupInputComponent()
 		
 		// EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AAppointmentPlayerController::Interact);
 
-		EnhancedInputComponent->BindAction(SetBasicAttack, ETriggerEvent::Triggered, this, &AAppointmentPlayerController::Fire);
+		EnhancedInputComponent->BindAction(SetBasicAttack, ETriggerEvent::Completed, this, &AAppointmentPlayerController::Fire);
 	}
 	else
 	{
